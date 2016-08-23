@@ -27,5 +27,6 @@ Aim to in the future create scaling VMs with Ansibles and futhure support all ty
 
 This will copy the host file from ansible directory and we shall configure it to our own. Ansible playbook check the current directory first for cfg and host list and overright it before it look at the Ansible Directory for the default ones. You can ignore this step if you want to configure the main directory hosts file list and keep it all in 1 file for simplicity.
 
-3.  
+3. Configure the 
+4. 
 
