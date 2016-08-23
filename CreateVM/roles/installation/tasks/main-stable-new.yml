@@ -1,0 +1,204 @@
+# current limitation : ks file has to be present on local host
+# var partition will be set to grow and use up all the VM_install
+
+- hosts: sandbox
+
+################################ Remote User ########################################
+
+  remote_user: oakgal
+  become: yes
+  become_method: sudo
+  become_user: root
+  gather_facts: false
+
+################################ Variable file ################################
+
+  vars_files:
+    - /etc/ansible/CreateVM/roles/installation/vars/main.yml
+
+################################ VM general config #############################
+  vars_prompt:
+    - name: "name"
+      prompt: "name of the VM:"
+      private: no
+      default: Ansible_VM
+
+    - name: "ram"
+      prompt: "RAM:"
+      private: no
+      default: 1200
+
+    - name: "size"
+      prompt: "Size of VM in Gigabyte:"
+      private: no
+      default: 10G
+
+    - name: "vcpus"
+      prompt: "Virtual CPU amount:"
+      private: no
+      default: 2
+    - name: "ipaddr"
+      prompt: "IP addr:"
+      private: no
+      default: 10.10.10.83
+
+    - name: "hostname"
+      prompt: "hostname:"
+      private: no
+      default: ansible_vm.clubmom.local
+
+    - name: "ks_location"
+      prompt: "path to kickstart file:"
+      private: no
+      default: http://10.10.30.70/ks/ks-partition.cfg
+
+################################ Partation config #########################
+
+    - name: "swap_space"
+      prompt: "swap space size:"
+      private: no
+
+    - name: "home_space"
+      prompt: "home space size:"
+      private: no
+
+    - name: "root_space"
+      prompt: "root space size:"
+      private: no
+
+
+################################ Installation time ############################
+
+    - name: "vm_waittime_minutes"
+      prompt: "VM installation wait time in minutes (at least 4 min):"
+      private: no
+      default: 5
+
+
+################################ Tasks ########################################
+
+  tasks:
+
+    - name: Setting up swap space #this will it own role
+      command: sed -i "s/\ <<swap>>/ {{swap_space}}/g" {{item.ks_location_local}}
+      with_items:
+        - "{{ guests }}"
+      tags: ks-switch
+      delegate_to: 127.0.0.1
+
+    - name: Setting up home space #this will it own role
+      command: sed -i "s/\ <<home>>/ {{home_space}}/g" {{item.ks_location_local}}
+      with_items:
+        - "{{ guests }}"
+      tags: ks-switch
+      delegate_to: 127.0.0.1
+
+    - name: Setting up root space #this will it own role
+      command: sed -i "s/\ <<root>>/ {{root_space}}/g" {{item.ks_location_local}}
+      with_items:
+        - "{{ guests }}"
+      tags: ks-switch
+      delegate_to: 127.0.0.1
+
+################################ ip address and Hostname setup on kickstart #########
+
+    - name: Setting up ip addr #this will it own role
+      command: sed -i "s/\ <<ipaddr>>/ {{ipaddr}}/g" {{item.ks_location_local}}
+      with_items:
+        - "{{ guests }}"
+      tags: ks-switch
+      delegate_to: 127.0.0.1
+
+
+    - name: Setting up hostname #this will it own role
+      command: sed -i "s/\ <<hostname>>/ {{hostname}}/g" {{item.ks_location_local}}
+      with_items:
+        - "{{ guests }}"
+      tags: ks-setup
+      delegate_to: 127.0.0.1
+
+################################ VM installation ########################################
+
+
+    - name: Creating QCOW disk space #this will it own role
+      command: chdir=/var/disk/ \ qemu-img create -f qcow2 /var/disk/{{name}}.qcow2 {{item.size}}
+      with_items:
+        - "{{ guests }}"
+      register: create_disk
+      tags: pre-install
+
+    - name: Creating new VM
+      command: virt-install
+               -n {{name}}
+               -r {{ram}}
+               --vcpus {{vcpus}}
+               --virt-type {{item.virt_type}}
+               --os-type {{item.os.os_type}}
+               --os-variant {{item.os.os_variant}}
+               --graphics vnc
+               --disk path=/var/disk/{{name}}.qcow2,format=qcow2
+               --noautoconsole
+               --location {{item.location.location_web}}
+               --location={{item.location.location_iso}}
+               --extra-args="ks={{ks_location}} console=tty0 console=ttyS0,115200"
+      with_items:
+        - "{{ guests }}"
+      register: VM_install
+      tags: install
+
+    - name: wait for vm to install
+      local_action: pause minutes={{vm_waittime_minutes}}
+      when: VM_install.changed
+      tags: install,wait_for
+
+    - name: start your new VM
+      command: virsh start {{name}}
+      ignore_errors: yes
+      register: starting
+
+    - debug: msg=" The VM might be taking a lot more time to set up. please start the VM manually once it shutoff"
+      when: starting |failed
+
+
+################################ Prepare for next installation ########################
+
+################################ Partition reset on Kickstart ########################
+
+    - name: reset the kickstart file swap #this will be another role
+      command: sed -i "s/\ {{swap_space}}/ <<swap>>/g" {{item.ks_location_local}}
+      with_items:
+        - "{{ guests }}"
+      tags: ks-setup
+      delegate_to: 127.0.0.1
+
+    - name: reset the kickstart file home #this will be another role
+      command: sed -i "s/\ {{home_space}}/ <<home>>/g" {{item.ks_location_local}}
+      with_items:
+        - "{{ guests }}"
+      tags: ks-setup
+      delegate_to: 127.0.0.1
+
+    - name: reset the kickstart file root #this will be another role
+      command: sed -i "s/\ {{root_space}}/ <<root>>/g" {{item.ks_location_local}}
+      with_items:
+        - "{{ guests }}"
+      tags: ks-setup
+      delegate_to: 127.0.0.1
+
+
+################################ ip address and Hostname reset on kickstart #########
+
+    - name: reset the kickstart file ipaddr #this will be another role
+      command: sed -i "s/\ {{ipaddr}}/ <<ipaddr>>/g" {{item.ks_location_local}}
+      with_items:
+        - "{{ guests }}"
+      tags: ks-setup
+      delegate_to: 127.0.0.1
+
+    - name: reset the kickstart file hostname #this will be another role
+      command: sed -i "s/\ {{hostname}}/ <<hostname>>/g" {{item.ks_location_local}}
+      tags: ks-setup
+      delegate_to: 127.0.0.1
+
+
+#    - name: get packages and do post-installation updates (again another role)

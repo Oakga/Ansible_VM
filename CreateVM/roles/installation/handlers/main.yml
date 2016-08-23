@@ -1,0 +1,3 @@
+---
+- name: show_active_VMs
+  command: virsh list --all
