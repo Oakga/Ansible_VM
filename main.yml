@@ -1,0 +1,33 @@
+---
+##this is the passwd to become sudo on sandbox01
+## It is highly suggested that you use one user for all
+## servers and use that user/passwd for all hosts
+
+#source_VM: a #Ansible_test
+#target_VM: b #Ansible_test_clone
+
+
+pass:
+  - ansible_become_pass: oakgal
+    remote_user: oakgal
+    become_user: root
+    local_user: oakga
+##this is the information you need to run virt-install command
+##You can configure to suit your need
+guests:
+  - name: Ansible_test #replace by prompt
+    ram: 1200 #replace by prompt
+    size: 10G #replace by prompt
+    vcpus: 2 #replace by prompt
+    virt_type: kvm
+    os:
+     os_type: linux
+     os_variant: rhel6
+    location:
+     location_iso: /opt/iso/centos6/CentOS-6.5-x86_64-minimal-Kickstart.iso
+     location_web: http://mirror.nl.leaseweb.net/centos/6/os/x86_64/
+    ipaddr: 10.10.10.83 #replace by prompt
+    vm_waittime_minutes: 5 #replace by prompt
+    hostname: ansible.clubmom.local #replace by prompt
+    ks_location: http://10.10.30.70/ks/ks-partition.cfg #replace by prompt
+    ks_location_local: /var/www/html/ks/ks-partition.cfg
