@@ -29,9 +29,10 @@ Aim to in the future create scaling VMs with Ansibles and futhure support all ty
 This will copy the host file from ansible directory and we shall configure it to our own. Ansible playbook check the current directory first for cfg and host list and overright it before it look at the Ansible Directory for the default ones. You can ignore this step if you want to configure the main directory hosts file list and keep it all in 1 file for simplicity.
 
 3.  Add the hosts that you want to configure. 
-
+```
 [sandbox]
 $hostname ansible_hosts=$host_ip ansible_ssh_pass=$password ansible_user=$user
+```
 
 Here the username and password can be encrypted using ansible-vault. Please look into ansible documentation for this.
 
