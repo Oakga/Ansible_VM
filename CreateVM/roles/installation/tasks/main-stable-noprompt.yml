@@ -1,6 +1,6 @@
 # current limitation : ks file has to be present on local host
 # var partition will be set to grow and use up all the VM_install
-
+# THis version will work without prompt 
 - hosts: sandbox
 
 ################################ Remote User ########################################
