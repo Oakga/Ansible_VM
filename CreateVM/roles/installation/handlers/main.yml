@@ -1,3 +1,5 @@
 ---
 - name: show_active_VMs
   command: virsh list --all
+
+#These are handlers, they will be call by ansible tasks. Handlers are tasks that are called often frequently.
