@@ -1,6 +1,8 @@
 # current limitation : ks file has to be present on local host
 # var partition will be set to grow and use up all the VM_install
 
+#This is to test partitions
+
 - hosts: sandbox
 
 ################################ Remote User ########################################
