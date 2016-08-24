@@ -5,7 +5,7 @@
 
 #source_VM: a #Ansible_test
 #target_VM: b #Ansible_test_clone
-
+#variables file might not need to  define the pass code.
 
 pass:
   - ansible_become_pass: oakgal
