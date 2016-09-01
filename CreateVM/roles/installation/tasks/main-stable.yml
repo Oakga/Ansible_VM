@@ -1,0 +1,214 @@
+#Summary:
+#This playbook will work as following
+# kickstart files are set up with <<variables>> inside them. These <> will be replaced by the
+# user prompt variables and according to that kickstart the virt-install command will run. After
+# installation process, the playbook will replace the variables inside the kickstart with
+# previous <<defaults>>. It will ping the VM afterwards to see if the VM is up. There are
+# short pauses inside the progress. 1st pause is to wait for the VM installation process. You can
+# see what going on in here or debug by typing this "virsh console $VM_name" on the VM host.
+# Second Pause is to 
+
+# current limitation : ks file has to be present on local host
+# var partition will be set to grow and use up all the VM_install
+
+- hosts: sandbox
+  remote_user: oakgal
+  become: yes
+  become_method: sudo
+  become_user: root
+  gather_facts: false
+  vars_files:
+    - /etc/ansible/CreateVM/roles/installation/vars/main.yml
+  vars_prompt:
+    - name: "name"
+      prompt: "name of the VM:"
+      private: no
+      default: Ansible_VM
+
+    - name: "ram"
+      prompt: "RAM:"
+      private: no
+      default: 1200
+
+    - name: "size"
+      prompt: "Size of VM in Gigabyte:"
+      private: no
+      default: 10G
+
+    - name: "vcpus"
+      prompt: "Virtual CPU amount:"
+      private: no
+      default: 2
+
+    - name: "ipaddr"
+      prompt: "IP addr:"
+      private: no
+      default: 10.10.10.93
+
+    - name: "hostname"
+      prompt: "hostname:"
+      private: no
+      default: ansible_vm.clubmom.local
+
+    - name: "ks_location"
+      prompt: "path to kickstart file:"
+      private: no
+      default: http://10.10.30.70/ks/ks-partition.cfg
+
+    - name: "vm_waittime_minutes"
+      prompt: "VM installation wait time in minutes (at least 4 min):"
+      private: no
+      default: 5
+
+    - name: "swap"
+      prompt: "swap space size (MB):"
+      private: no
+      default: 1000
+
+    - name: "home"
+      prompt: "home space size (MB):"
+      private: no
+      default: 2000
+
+    - name: "root"
+      prompt: "root space size (MB):"
+      private: no
+      default: 3000
+
+  tasks:
+
+    - name: Setting up swap #this will it own role
+      command: sed -i "0,/<<swap>>/ s//{{swap}}/" {{item.ks_location_local}}
+      with_items:
+        - "{{ guests }}"
+      tags: ks-switch
+      delegate_to: 127.0.0.1
+
+    - name: Setting up home #this will it own role
+      command: sed -i "0,/<<home>>/ s//{{home}}/" {{item.ks_location_local}}
+      with_items:
+        - "{{ guests }}"
+      tags: ks-switch
+      delegate_to: 127.0.0.1
+
+    - name: Setting up root #this will it own role
+      command: sed -i "0,/<<root>>/ s//{{root}}/" {{item.ks_location_local}}
+      with_items:
+        - "{{ guests }}"
+      tags: ks-switch
+      delegate_to: 127.0.0.1
+
+
+    - name: Setting up ip addr #this will it own role
+      command: sed -i "0,/<<ipaddr>>/ s//{{ipaddr}}/" {{item.ks_location_local}}
+      with_items:
+        - "{{ guests }}"
+      tags: ks-switch
+      delegate_to: 127.0.0.1
+
+    - name: Setting up hostname #this will it own role
+      command: sed -i "0,/<<hostname>>/ s//{{hostname}}/" {{item.ks_location_local}}
+      with_items:
+        - "{{ guests }}"
+      tags: ks-setup
+      delegate_to: 127.0.0.1
+
+    - name: Creating QCOW disk space #this will it own role
+      command: chdir=/var/disk/ \ qemu-img create -f qcow2 /var/disk/{{name}}.qcow2 {{item.size}}
+      with_items:
+        - "{{ guests }}"
+      register: create_disk
+      tags: pre-install
+      ignore_errors: yes
+
+    - name: Creating new VM
+      command: virt-install
+               -n {{name}}
+               -r {{ram}}
+               --vcpus {{vcpus}}
+               --virt-type {{item.virt_type}}
+               --os-type {{item.os.os_type}}
+               --os-variant {{item.os.os_variant}}
+               --graphics vnc
+               --disk path=/var/disk/{{name}}.qcow2,format=qcow2
+               --noautoconsole
+               --location={{item.location.location_iso}}
+               --extra-args="ks={{ks_location}} console=tty0 console=ttyS0,115200"
+      with_items:
+        - "{{ guests }}"
+      ignore_errors: yes
+      register: VM_install
+      tags: install
+
+    - name: wait for vm to install
+      local_action: pause minutes={{vm_waittime_minutes}}
+      when: VM_install.changed
+      tags: install,wait_for
+      ignore_errors: yes
+
+    - name: start your new VM
+      command: virsh start {{name}}
+      register: virt_info
+      tags: post-install
+      notify: show_active_Vms
+      ignore_errors: yes
+
+    - name: reset the kickstart file swap #this will be another role
+      command: sed -i "0,/{{swap}}/ s//<<swap>>/" {{item.ks_location_local}}
+      with_items:
+        - "{{ guests }}"
+      tags: reset
+      delegate_to: 127.0.0.1
+
+    - name: reset the kickstart file swap #this will be another role
+      command: sed -i "0,/{{home}}/ s//<<home>>/" {{item.ks_location_local}}
+      with_items:
+        - "{{ guests }}"
+      tags: reset
+      delegate_to: 127.0.0.1
+
+    - name: reset the kickstart file swap #this will be another role
+      command: sed -i "0,/{{root}}/ s//<<root>>/" {{item.ks_location_local}}
+      with_items:
+        - "{{ guests }}"
+      tags: reset
+      delegate_to: 127.0.0.1
+
+    - name: reset the kickstart file ipaddr #this will be another role
+      command: sed -i "0,/{{ipaddr}}/ s//<<ipaddr>>/" {{item.ks_location_local}}
+      with_items:
+        - "{{ guests }}"
+      tags: reset
+      delegate_to: 127.0.0.1
+
+    - name: reset the kickstart file hostname #this will be another role
+      command: sed -i "0,/{{hostname}}/ s//<<hostname>>/" {{item.ks_location_local}}
+      with_items:
+        - "{{ guests }}"
+      tags: reset
+      delegate_to: 127.0.0.1
+
+    - name: Waiting for the VM to boot up
+      local_action: pause minutes=1
+      when: virt_info.changed
+
+    - name: Pinging the VM
+      command: ping -c 5 {{ipaddr}}
+      register: Pong
+      tags: pingpong
+      ignore_errors: true
+
+    - name: Ping failed
+      debug: msg="System {{ipaddr}} is not set up properly. Please look at readme notes to debug"
+      when: Pong|failed
+      tags: pingpong
+
+    - name: Ping succeeded
+      debug: msg="System {{ipaddr}} is up online"
+      when: Pong|succeeded
+      tags: pingpong
+
+
+
+
+#    - name: get packages and do post-installation updates (again another role)
