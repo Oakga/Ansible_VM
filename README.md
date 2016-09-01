@@ -38,7 +38,7 @@ Here the username and password can be encrypted using ansible-vault. Please look
 
 4. next we will change the var files. Please go to var/main.yml and change the remote_user ssh pass in there. 
 
-5. Then you can run the playbook. 
+5. Then you can run the playbook with "ansible-playbook $playbook_name"
 
 
 
