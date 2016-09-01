@@ -5,6 +5,11 @@
 Automate Installation process of KVM centos boxes with Ansible. You can specify the specs of VM during the installation process.
 Please follow the guide in the next following lines to set up this playbook.
 
+## Features to add
+installing packages on the VM automatically after booting
+Deploying mutiple VM at a time
+Adding them to Monitoring services
+
 ## Code running example
 ```
 ansible-playbook site.yml
@@ -19,7 +24,7 @@ Aim to in the future create scaling VMs with Ansibles and futhure support all ty
 
 ## Installation
 Note:
-This require apache server set up and ansible set-up on the localhost. In future release, it will be change to optional.
+This require apache server set up and ansible set-up on the localhost.
 
 1. Download the zip. Make a directory for the ansible playbooks in the location of your choice. Unpack the zip file in that directory
 
