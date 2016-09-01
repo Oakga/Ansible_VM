@@ -47,8 +47,10 @@ Here the username and password can be encrypted using ansible-vault. Please look
 
 4. Please move the /files/ks/ to to /www/html/ks/
 
-5. On the remote VM host, download the linux distro or use the Centos 6.5 iso that i provided in files/iso/
+5. On the remote VM host, download the linux distro or use the Centos 6.5 iso that i provided below
 Warning: If you are using Centos 6.5 version, the released iso will not work. You need to change the image according to the info i provided in the var file. You will need to scp transfer the iso file (inside file/iso/) to the remote host 
+
+Centos 6.5 link: https://drive.google.com/open?id=0B1XWlzErQSfnb0NKYmljalk3cnc
 
 6. Next we will change the var/main.yml. Please go to var/main.yml and make changes to the commented lines.
 
