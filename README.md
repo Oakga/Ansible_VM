@@ -45,7 +45,7 @@ $hostname ansible_hosts=$host_ip ansible_ssh_pass=$password ansible_user=$user
 [Optional]
 Here the username and password can be encrypted using ansible-vault. Please look into ansible documentation for this.
 
-4. Please move the /files/ks/ to to /www/html/ 
+4. Please move the /files/ks/ to to /www/html/ks/
 
 5. On the remote VM host, download the linux distro or use the Centos 6.5 iso that i provided in files/iso/
 Warning: If you are using Centos 6.5 version, the released iso will not work due to a small change in the kernal. Therefore, you will need to scp transfer the iso file (inside file/iso/) to the remote host 
