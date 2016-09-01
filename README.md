@@ -7,7 +7,9 @@ Please follow the guide in the next following lines to set up this playbook.
 
 ## Features to add
 installing packages on the VM automatically after booting
+
 Deploying mutiple VM at a time
+
 Adding them to Monitoring services
 
 ## Code running example
@@ -40,6 +42,7 @@ This will copy the host file from ansible directory and we shall configure it to
 [testbox]
 $hostname ansible_hosts=$host_ip ansible_ssh_pass=$password ansible_user=$user
 ```
+[Optional]
 Here the username and password can be encrypted using ansible-vault. Please look into ansible documentation for this.
 
 4. Please move the /files/ks/ to to /www/html/ 
