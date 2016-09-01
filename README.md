@@ -1,6 +1,5 @@
-# Ansible-KVM-installer
+# Ansible-KVM-installer version 1.0
 
-Still under active development
 ## Synopsis
 
 Automate Installation process of KVM centos boxes with Ansible. You can specify the specs of VM during the installation process.
