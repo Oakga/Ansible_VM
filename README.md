@@ -50,13 +50,28 @@ Here the username and password can be encrypted using ansible-vault. Please look
 5. On the remote VM host, download the linux distro or use the Centos 6.5 iso that i provided below
 Warning: If you are using Centos 6.5 version, the released iso will not work. You need to change the image according to the info i provided in the var file. You will need to scp transfer the iso file (inside file/iso/) to the remote host 
 
-Centos 6.5 link: https://drive.google.com/open?id=0B1XWlzErQSfnb0NKYmljalk3cnc
-
+Centos 6.5 link: 
+```
+https://drive.google.com/open?id=0B1XWlzErQSfnb0NKYmljalk3cnc
+```
 6. Next we will change the var/main.yml. Please go to var/main.yml and make changes to the commented lines.
 
 7. Next we will need to change the tasks/main.yml. Please naviagate to the file and make changes accordingly to the comments.
 
-8. Get root access and we can run the ansible playbook using "ansible-playbook main.yml" in the tasks directory or you can include this role in your own playbook.
+8. Go into /etc/ansible/ansible.conf
+change the following:
+```
+[defaults]
+host_key_checking = False
+```
+9. Get root access and we can run the ansible playbook using "ansible-playbook main.yml" in the tasks directory or you can include this role in your own playbook. You can rename this playbook and move it around to your convience.
+
+##Things to do after installation:
+Check out ansible-vault
+Change /etc/hosts
+Change defaults in /etc/ansible/CreateVM/roles/installation/tasks/main.yml
+Change vars in /etc/ansible/CreateVM/vars/main.yml
+
 
 
 
