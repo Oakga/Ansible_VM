@@ -68,8 +68,11 @@ host_key_checking = False
 
 ##Things to do after installation:
 Check out ansible-vault
+
 Change /etc/hosts
+
 Change defaults in /etc/ansible/CreateVM/roles/installation/tasks/main.yml
+
 Change vars in /etc/ansible/CreateVM/vars/main.yml
 
 
